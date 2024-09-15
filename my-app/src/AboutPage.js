@@ -11,24 +11,16 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-const CustomJsonFormat = z.object({
-  key1: z.string(),
-  key2: z.string(),
-  // Add more keys and types as needed
-});
-
 function AboutPage() {
-  // State to hold the search input, tags, background info, and response
   const [searchTerm, setSearchTerm] = useState('');
   const [tags, setTags] = useState('');
-  const [backgroundInfo, setBackgroundInfo] = useState(''); // Background info fetched from API
-  const [response, setResponse] = useState(''); // State to hold the API response
+  const [backgroundInfo, setBackgroundInfo] = useState('');
+  const [response, setResponse] = useState({});
 
-  // Function to make the OpenAI API call
   const callOpenAiApi = async (userPrompt) => {
     try {
       const completion = await openai.beta.chat.completions.parse({
-        model: "gpt-4o-2024-08-06", // Use your desired model
+        model: "gpt-4o-2024-08-06",
         messages: [
           {
             role: "system",
@@ -36,18 +28,17 @@ function AboutPage() {
           },
           {
             role: "user",
-            content: `${userPrompt}\n Please provide the response in this format: {"key1": "value1", "key2": "value2"}.`
+            content: `${userPrompt}\nPlease provide the response in this format: {"key1": "value1", "key2": "value2"}.`
           },
         ],
         max_tokens: 100,
       });
-      let jsonResponse = completion.choices[0].message.content;
 
-      jsonResponse = jsonResponse.replace(/```json|```/g, ''); // Remove ```json and ```
-      console.log(jsonResponse);
-      // Parse the cleaned JSON string
+      let jsonResponse = completion.choices[0].message.content;
+      jsonResponse = jsonResponse.replace(/```json|```/g, '');
       const parsedResponse = JSON.parse(jsonResponse);
-      
+      console.log("UserPrompt", userPrompt);
+      console.log('Parsed response:', parsedResponse);
       setResponse(parsedResponse);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -55,7 +46,6 @@ function AboutPage() {
     }
   };
 
-  // Function to fetch background info from Flask backend
   const fetchBackgroundInfo = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5000/search-reddit?query=${searchTerm}`);
@@ -72,30 +62,24 @@ function AboutPage() {
     }
   };
 
-  // Handle search term input change
   const handleSearchTermChange = (event) => {
-    setSearchTerm(event.target.value); // Update search term state
+    setSearchTerm(event.target.value);
   };
 
-  // Handle tags input change
   const handleTagsChange = (event) => {
-    setTags(event.target.value); // Update tags state
+    setTags(event.target.value);
   };
 
-  // Handle form submission
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
     var fetchedBackgroundInfo = await fetchBackgroundInfo();
-    fetchedBackgroundInfo = fetchedBackgroundInfo.substring(0, 1000);
-    
+    fetchedBackgroundInfo = fetchedBackgroundInfo.substring(0, 3000);
+
     if (fetchedBackgroundInfo) {
-      const userPrompt = `Help extract information about product reviews. You will get a chunk of product review text and categories of information to extract. Return a JSON output that associates brands with an array of their ranking, in order of the categories. For example:
+      const userPrompt = `Help extract information about product reviews. You will get a chunk of product review text and categories of information to extract. Return a JSON output that associates brands with an array of their ranking, in order of the categories. 
 
-                          Input: <reviews about running shoes>, categories: price,comfort,style. 
-                          Output: {Nike: [1, 3, 2], Adidas: [2, 1, 1], Saucony: [3, 2, 3]}
-
-                          You are given these categories: ${tags}. You are given this background information: ${fetchedBackgroundInfo}. Do not have any tied rankings. Only return the JSON in the specified format.`;
+                          You are given these categories: ${tags}. The rankings should start at 1 and there should be no ties. You are given this background information: ${fetchedBackgroundInfo}. Only return the JSON in the specified format.`;
       callOpenAiApi(userPrompt);
     }
   };
@@ -119,9 +103,12 @@ function AboutPage() {
           {Object.keys(response).map((product) => (
             <tr key={product}>
               <td>{product}</td>
-              {response[product].map((ranking, index) => (
-                <td key={index}>{ranking}</td>
-              ))}
+              {Array.isArray(response[product])
+                ? response[product].map((ranking, index) => (
+                    <td key={index}>{ranking}</td>
+                  ))
+                : <td colSpan={tagArray.length}>No rankings available</td>
+              }
             </tr>
           ))}
         </tbody>
@@ -151,9 +138,7 @@ function AboutPage() {
 
         <button type="submit" className="submit-button">Search</button>
       </form>
-
-     
-      {response && <p>Your Search Results:</p>}
+      {response && <p>Response from OpenAI:</p>}
       
       {/* Render the table */}
       {response && renderTable()}

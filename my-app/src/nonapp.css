@@ -59,3 +59,54 @@ h2 {
     }
   }
   
+
+
+/* Styling for the table */
+table#rankingsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px; /* Make the font size bigger */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  }
+  
+  /* Table headers */
+  table#rankingsTable thead th {
+    background-color: #0056b3; /* Dark blue header background */
+    color: #fff; /* White text in headers */
+    padding: 12px; /* Add padding to make it more readable */
+    font-size: 20px;
+    text-transform: uppercase;
+  }
+  
+  /* Table body rows */
+  table#rankingsTable tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+  
+  /* Alternate row colors for readability */
+  table#rankingsTable tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3; /* Light grey for even rows */
+  }
+  
+  table#rankingsTable tbody tr:nth-of-type(odd) {
+    background-color: #ffffff; /* White for odd rows */
+  }
+  
+  /* Table cell styling */
+  table#rankingsTable tbody td {
+    padding: 12px;
+    text-align: center;
+  }
+  
+  /* Hover effect for rows */
+  table#rankingsTable tbody tr:hover {
+    background-color: #d1e7fd; /* Light blue on hover */
+  }
+  
+  /* Make the table responsive */
+  @media (max-width: 600px) {
+    table#rankingsTable {
+      font-size: 14px;
+    }
+  }
