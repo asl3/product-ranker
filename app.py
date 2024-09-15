@@ -4,9 +4,10 @@ from praw.models import MoreComments
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-# Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Reddit API credentials
 clientId = 'j9xx6ZwvWE91ykFNaKLMDw'
@@ -36,16 +37,17 @@ def search_reddit(query, subreddit_name='all', limit=5):
 # Flask route to handle Reddit search
 @app.route('/search-reddit', methods=['GET'])
 def search_reddit_route():
+    print("got here1")
     query = request.args.get('query')
     subreddit = request.args.get('subreddit', default='all')
-    limit = int(request.args.get('limit', default=5))
-    
+    limit = int(request.args.get('limit', default=1))
+    print("got here2")
     if not query:
         return jsonify({'error': 'Query parameter is required'}), 400
     
     # Call the search_reddit function
     results = search_reddit(query, subreddit_name=subreddit, limit=limit)
-    
+    print("got here 3")
     return jsonify({'results': results})
 
 # Run the app
